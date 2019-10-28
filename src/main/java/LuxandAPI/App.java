@@ -17,20 +17,9 @@ public final class App {
      */
     public static void main(String[] args) {
         System.out.println("Hello World!");
-
-        System.setProperty("http.proxyHost", "113.160.234.147");
-        System.setProperty("http.proxyPort","56570");
-        
-        try {
-            URL url = new URL( "https://memorynotfound.com/configure-http-proxy-settings-java/");
-            HttpsURLConnection connection = (HttpsURLConnection)url.openConnection();
-            System.out.println(connection.getResponseCode());
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
         
 
-       /* API api = new LuxandAPI();
+        API api = new LuxandAPI();
         System.out.println("Get UID and Cookei from Luxand");
         api.initiateConnection();
         File file1 = new File("./image/Ngoc-Trinh.jpg");
@@ -44,12 +33,12 @@ public final class App {
             gender : 1 boy
                     0 girl
                     -1 either
-        *//*
+        */
         System.out.println("make baby: ");
         String imageName = api.makeBaby(-1,-1);
         System.out.println("url baby: "+imageName);
         String fileOuputPath = "./image"+imageName;
         System.out.println("save image "+imageName+" to "+fileOuputPath);
-        api.saveImage(imageName, fileOuputPath);*/
+        api.saveImage(imageName, fileOuputPath);
     }
 }
