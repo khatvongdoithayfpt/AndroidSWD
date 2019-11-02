@@ -29,7 +29,7 @@ import java.util.Map.Entry;
  */
 public class LuxandAPI implements API {
 
-    private Map<String, String> cookies;
+    public  Map<String, String> cookies;
 
     @Override
     public void initiateConnection() {
@@ -163,6 +163,13 @@ public class LuxandAPI implements API {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getURLChildImage(String nameImageChild) {
+        URLBuilder builder = new URLBuilder();
+        URL url = builder.create(Const.URL_IMAGE).setPath(nameImageChild).getUrl();
+        return url.toString();
     }
 
     private String getStringCookies() {

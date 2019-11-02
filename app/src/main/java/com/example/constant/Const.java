@@ -12,6 +12,10 @@ public final class Const {
     public static final String EXPERIMENTS_COOKIES = "luxand_experiments_cookie";
     public static final String PATNER_PHOTO_1 = "babymakerphoto1";
     public static final String PATNER_PHOTO_2 = "babymakerphoto2";
+
+    public static  int UPLOAD_FILE_1 = 1;
+    public static  int UPLOAD_FILE_2 = 2;
+
     /* PARAM NAME */
 
     public static final String SEX = "sex";

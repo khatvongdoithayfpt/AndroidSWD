@@ -9,4 +9,5 @@ public interface API {
     void uploadImage(File file,int type);
     void saveImage(String nameImage,String saveFilePath);
     String makeBaby(int gender,int skin);
+    String getURLChildImage(String nameImageChild);
 }

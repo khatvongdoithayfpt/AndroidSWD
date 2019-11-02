@@ -4,14 +4,23 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.example.builder.URLBuilder;
+import com.example.connection.API;
+import com.example.connection.LuxandAPI;
+import com.example.constant.Const;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +33,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imgView1;
     private ImageView imgView2;
     private ImageView imgView3;
+    private String realPath1= "";
+    private String realPath2= "";
+    private boolean checkLoad = false;
+
+    private API api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +46,13 @@ public class MainActivity extends AppCompatActivity {
         imgView1 = findViewById(R.id.imageView);
         imgView2 = findViewById(R.id.imageView2);
         imgView3 = findViewById(R.id.loadImage);
+        api = new LuxandAPI();
+        api.initiateConnection();
+        Log.d("Cookies",((LuxandAPI) api).cookies.toString());
     }
 
     public void upload1(View view) {
+        Log.d("Cookies",((LuxandAPI) api).cookies.toString());
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent,REQUEST_CODE_IMAGE1);
@@ -45,6 +63,17 @@ public class MainActivity extends AppCompatActivity {
         intent.setType("image/*");
         startActivityForResult(intent,REQUEST_CODE_IMAGE2);
     }
+    public String getRealPathFromURI (Uri contentUri) {
+        String path = null;
+        String[] proj = { MediaStore.MediaColumns.DATA };
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+            path = cursor.getString(column_index);
+        }
+        cursor.close();
+        return path;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -52,9 +81,15 @@ public class MainActivity extends AppCompatActivity {
             if (requestCode == REQUEST_CODE_IMAGE1 && data!=null ){
                 try {
                     Uri uri = data.getData();
+                    realPath1 = getRealPathFromURI(uri);
                     InputStream inputStream = getContentResolver().openInputStream(uri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     imgView1.setImageBitmap(bitmap);
+
+                    File file = new File(realPath1);
+                    api.uploadImage(file, Const.UPLOAD_FILE_1);
+                    Log.d("UploadImage",""+realPath1);
+
                 } catch (FileNotFoundException e){
                     e.printStackTrace();
                 }
@@ -64,6 +99,10 @@ public class MainActivity extends AppCompatActivity {
                     InputStream inputStream = getContentResolver().openInputStream(uri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     imgView2.setImageBitmap(bitmap);
+                    realPath2 = getRealPathFromURI(uri);
+                    File file = new File(realPath2);
+                    Log.d("UploadImage",""+realPath2);
+                    api.uploadImage(file, Const.UPLOAD_FILE_2);
                 } catch (FileNotFoundException e){
                     e.printStackTrace();
                 }
@@ -71,8 +110,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     public void LoadInternet(View view) {
-       new  LoadImageAPI().execute("");
+        Log.d("Cookies",((LuxandAPI) api).cookies.toString());
+        String nameImageChild = api.makeBaby(-1,-1);
+        Log.d("LoadImageUrl",""+nameImageChild);
+        String url = api.getURLChildImage(nameImageChild);
+        Log.d("LoadImage","-"+url);
+       new  LoadImageAPI().execute(url);
     }
 
     private class LoadImageAPI extends AsyncTask<String,Void, Bitmap> {
@@ -95,9 +140,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
+            Log.d("LoadImage","Đã đến");
             imgView3.setImageBitmap(bitmap);
 
         }
     }
-
 }
