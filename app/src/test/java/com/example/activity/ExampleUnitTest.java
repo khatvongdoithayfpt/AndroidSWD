@@ -1,4 +1,4 @@
-package com.example.swdproject;
+package com.example.activity;
 
 import org.junit.Test;
 

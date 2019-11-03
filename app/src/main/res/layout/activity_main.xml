@@ -34,7 +34,6 @@
         android:layout_marginTop="30dp"
         android:text="Upload"
         app:layout_constraintStart_toStartOf="@+id/imageView"
-        android:onClick="upload1"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
@@ -43,7 +42,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="Upload"
-        android:onClick="upload2"
         app:layout_constraintStart_toStartOf="@+id/imageView2"
         app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
@@ -53,7 +51,6 @@
         android:layout_height="50dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="132dp"
-        android:onClick="LoadInternet"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/upload1"
         tools:srcCompat="@tools:sample/avatars" />

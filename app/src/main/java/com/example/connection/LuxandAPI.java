@@ -3,8 +3,10 @@ package com.example.connection;
 import com.example.builder.URLBuilder;
 import com.example.constant.Const;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,9 +32,21 @@ import java.util.Map.Entry;
 public class LuxandAPI implements API {
 
     public  Map<String, String> cookies;
+    private static API api;
+
+    static {
+        api = new LuxandAPI();
+    }
+
+    private LuxandAPI() {
+    }
+
+    public static API getApi() {
+        return api;
+    }
 
     @Override
-    public void initiateConnection() {
+    public synchronized void initiateConnection() {
         try {
             cookies = new HashMap<>();
             URL url = new URL(Const.URL_LUXAND);
@@ -75,7 +89,8 @@ public class LuxandAPI implements API {
                     .append(CRLF);
             writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName())).append(CRLF);
             writer.append(CRLF).flush();
-            Files.copy(file.toPath(), os);
+//            Files.copy(file.toPath(), os);
+            copyFileToOs(file,os);
             os.flush();
             writer.append(CRLF).flush();
             // End of multipart/form-data.
@@ -181,4 +196,14 @@ public class LuxandAPI implements API {
         sc.append(Const.COOKIES_WARNING).append("=").append("true");
         return sc.toString();
     }
+    private void copyFileToOs(File file,OutputStream os) throws Exception{
+        int size = 1024;
+        BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file) , size);
+        byte[] buffer = new byte[size];
+        while(inputStream.read(buffer) > 0){
+            os.write(buffer);
+        }
+        inputStream.close();
+    }
+
 }
