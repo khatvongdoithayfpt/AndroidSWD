@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">SWDProject</string>
+    <string name="facebook_app_id">458397024795274</string>
+    <string name="fb_login_protocol_scheme">fb458397024795274</string>
+
 </resources>
