@@ -1,5 +1,7 @@
 package com.example.activity;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -18,15 +20,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.connection.API;
@@ -39,10 +40,8 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
@@ -68,9 +67,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imgView3;
     private String realPath1 = "";
     private String realPath2 = "";
+    Button button2, shareFB;
     private API api;
     String userName;
     MenuItem item;
+    ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,6 +156,12 @@ public class MainActivity extends AppCompatActivity {
         imgView2 = findViewById(R.id.imageView2);
         imgView3 = findViewById(R.id.loadImage);
         Toolbar toolbar = findViewById(R.id.toolbar_actionbar);
+        progressBar=findViewById(R.id.progress_bar);
+        button2=findViewById(R.id.button2);
+        shareFB=findViewById(R.id.fb_share_button);
+        shareFB.setVisibility(View.INVISIBLE);
+        progressBar.setProgress(0);
+        progressBar.setVisibility(View.GONE);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
@@ -244,8 +251,6 @@ public class MainActivity extends AppCompatActivity {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
 
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-        System.out.println(accessToken);
-        System.out.println(isLoggedIn);
         if (!isLoggedIn) {
             facebookLogin();
         }
@@ -320,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class DoMakeBaby extends AsyncTask<BabyCharacteristic, Void, String> {
+        boolean loading=false;
         @Override
         protected String doInBackground(BabyCharacteristic... babyCharacteristics) {
             String nameImageChild = null;
@@ -331,10 +337,46 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+            loading=true;
+            button2.setClickable(false);
+            button2.setText("Loading....");
+            shareFB.setVisibility(View.INVISIBLE);
+            process();
+        }
+
+        @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             String url = api.getURLChildImage(s);
             new LoadImageAPI().execute(url);
+            loading=false;
+            button2.setClickable(true);
+            button2.setText("Result");
+            shareFB.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+        }
+        void process(){
+            Thread  t= new Thread(){
+                @Override
+                public void run() {
+                    super.run();
+                    while (loading){
+
+                        try{
+                            sleep(100);
+                            progressBar.incrementProgressBy(10);
+                            if(progressBar.getProgress()==100)
+                                progressBar.setProgress(0);
+                        }catch (Exception e){
+                            System.out.println(e);
+                        }
+                    }
+                }
+            };
+            t.start();
         }
     }
 

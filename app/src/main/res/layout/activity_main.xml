@@ -30,15 +30,17 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="0.1"></View>
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_weight="0.3"
             android:clickable="true"
             android:onClick="eventUpload1"
-            android:src="@drawable/ic_launcher_background"
-            android:layout_weight="0.3"
-            android:layout_gravity="center"/>
+            android:src="@drawable/ic_launcher_background" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -58,28 +60,75 @@
             android:layout_weight="0.1"></View>
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/relative"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:max="100"
+        android:minWidth="250dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_process">
+
+    </ProgressBar>
+
     <ImageView
         android:id="@+id/loadImage"
         android:layout_width="255dp"
         android:layout_height="261dp"
         android:layout_below="@+id/relative"
-        android:layout_marginTop="37dp"
-        android:clickable="true"
-        android:onClick="eventPressMakeBaby"
-        android:src="@drawable/ic_launcher_background"
         android:layout_centerHorizontal="true"
-        />
+        android:layout_marginTop="49dp"
+        android:src="@drawable/ic_launcher_background" />
 
-    <Button
-        android:id="@+id/fb_share_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/relative2"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/loadImage"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="26dp"
-        android:onClick="test"
-        android:padding="10dp"
-        android:text="Share On FaceBook" />
+        android:layout_marginTop="57dp"
+        android:orientation="horizontal"
+        android:weightSum="1">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.2"></View>
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:padding="10dp"
+            android:text="Result"
+            android:textColor="#fff"
+            android:background="#79B626"
+            android:onClick="eventPressMakeBaby"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"></View>
+
+        <Button
+            android:id="@+id/fb_share_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadImage"
+            android:layout_weight="0.2"
+            android:onClick="test"
+            android:padding="10dp"
+            android:background="#1F76AD"
+            android:textColor="#fff"
+            android:text="Share On FaceBook" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"></View>
+    </LinearLayout>
+
 </RelativeLayout>
