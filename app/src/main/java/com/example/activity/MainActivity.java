@@ -17,8 +17,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -26,23 +24,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.connection.API;
 import com.example.connection.LuxandAPI;
-import com.example.constant.Const;
+import com.example.constant.Constant;
 import com.example.model.BabyCharacteristic;
+import com.example.model.SavedInformation;
+import com.example.utils.SavedInformationRepository;
+import com.example.utils.Utils;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
@@ -71,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     private API api;
     String userName;
     MenuItem item;
+    Bundle bundle ;
+    private SavedInformation savedInformation;
+    private SavedInformationRepository repository;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,6 +163,19 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setTitle("Predict Child");
         api = LuxandAPI.getApi();
         new InitConnection().execute();
+
+        repository = new SavedInformationRepository(getApplicationContext());
+        savedInformation = new SavedInformation();
+
+        bundle = new Bundle();
+        findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),SavedImageActivity.class);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
     }
 
     public void eventUpload1(View view) {
@@ -183,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setImageView(ImageView imageView, Uri uri) {
         try {
-            realPath1 = getRealPathFromURI(uri);
             InputStream inputStream = getContentResolver().openInputStream(uri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             imageView.setImageBitmap(bitmap);
@@ -216,16 +229,22 @@ public class MainActivity extends AppCompatActivity {
             int action = 0;
             if (requestCode == REQUEST_CODE_IMAGE1 && data != null) {
                 uri = data.getData();
-                setImageView(imgView1, uri);
+                new SetImageView(imgView1, uri).execute();
                 realPath1 = getRealPathFromURI(uri);
+
+                savedInformation.setPartner1(realPath1);
+
                 file = new File(realPath1);
-                action = Const.UPLOAD_FILE_1;
+                action = Constant.UPLOAD_FILE_1;
             } else if (requestCode == REQUEST_CODE_IMAGE2 && data != null) {
                 uri = data.getData();
-                setImageView(imgView2, uri);
+                new SetImageView(imgView2, uri).execute();
                 realPath2 = getRealPathFromURI(uri);
+
+                savedInformation.setPartner2(realPath2);
+
                 file = new File(realPath2);
-                action = Const.UPLOAD_FILE_2;
+                action = Constant.UPLOAD_FILE_2;
             }
             new UploadImage(action).execute(file);
         }
@@ -259,6 +278,23 @@ public class MainActivity extends AppCompatActivity {
         if (shareDialog.canShow(content)) {
 
             shareDialog.show(content);
+        }
+    }
+
+    private class SetImageView extends AsyncTask<Void,Void,Void>{
+
+        private ImageView imageView;
+        private Uri uri;
+
+        public SetImageView(ImageView imageView, Uri uri) {
+            this.imageView = imageView;
+            this.uri = uri;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            setImageView(imageView,uri);
+            return null;
         }
     }
 
@@ -322,19 +358,30 @@ public class MainActivity extends AppCompatActivity {
     private class DoMakeBaby extends AsyncTask<BabyCharacteristic, Void, String> {
         @Override
         protected String doInBackground(BabyCharacteristic... babyCharacteristics) {
-            String nameImageChild = null;
+            String result = null;
             if (babyCharacteristics != null && babyCharacteristics.length > 0) {
-                nameImageChild = api.makeBaby(-1, -1);
-                Log.e("Image Link", nameImageChild);
+                result = api.makeBaby(-1, -1);
             }
-            return nameImageChild;
+            return result;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            String url = api.getURLChildImage(s);
-            new LoadImageAPI().execute(url);
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            if(result.equals(Constant.RESULT_SUCCESS)){
+                String url = api.getURLChildImage();
+                new LoadImageAPI().execute(url);
+
+                String pathChild = Utils.saveImage(api,"ChildOfKing");
+                savedInformation.setChild(pathChild);
+
+                repository.insert(savedInformation.getPartner1()
+                        ,savedInformation.getPartner2()
+                        ,savedInformation.getChild());
+            }else{
+                Toast.makeText(getBaseContext(),result,Toast.LENGTH_LONG);
+                Log.e("Information Image", result);
+            }
         }
     }
 
@@ -346,7 +393,10 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("aaaaaaaa");
                     String name = object.getString("name");
                     item.setTitle(name);
-                    String image = object.getJSONObject("picture").getJSONObject("data").getString("url");
+                    String image = object
+                            .getJSONObject("picture")
+                            .getJSONObject("data")
+                            .getString("url");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
