@@ -17,10 +17,10 @@ public interface DaoAccess {
     @Insert
     Long insertTask(SavedInformation savedInformation);
 
-    @Query("SELECT * FROM SavedInformation ORDER BY created_at DESC")
+    @Query("SELECT * FROM image_information ORDER BY created_at DESC")
     LiveData<List<SavedInformation>> fetchAllData();
 
-    @Query("SELECT * FROM SavedInformation WHERE id =:id")
+    @Query("SELECT * FROM image_information WHERE id =:id")
     SavedInformation getSingleData(int id);
 
 

@@ -2,7 +2,6 @@ package com.example.utils;
 
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
 import com.example.connection.API;
 import com.example.constant.Constant;
@@ -20,7 +19,7 @@ public class Utils {
             file.mkdirs();
         }
         new TaskSaveImage(api,nameFile,rootPath).execute();
-        return rootPath;
+        return rootPath+nameFile;
     }
     private static class TaskSaveImage extends AsyncTask<Void,Void,Void>{
 

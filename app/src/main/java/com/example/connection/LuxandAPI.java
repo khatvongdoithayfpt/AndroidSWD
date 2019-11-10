@@ -34,7 +34,7 @@ public class LuxandAPI implements API {
 
     public  Map<String, String> cookies;
     private static API api;
-    private String resultChild;
+    public String resultChild;
 
     static {
         api = new LuxandAPI();
@@ -165,6 +165,7 @@ public class LuxandAPI implements API {
         }
     }
 
+
     @Override
     public String saveImage(String nameImage,String dir) {
         try {
@@ -184,7 +185,7 @@ public class LuxandAPI implements API {
             }
             is.close();
             fos.close();
-            return Constant.RESULT_SUCCESS;
+            return dir;
         } catch (Exception e) {
             e.printStackTrace();
             return Constant.RESULT_ERROR;

@@ -42,4 +42,8 @@ public final class Constant {
     public static final String RESULT_SUCCESS = "success";
     public static final String RESULT_ERROR = "error";
 
+    public static final int REQUEST_CODE_SAVED = 12346;
+    public static final String RESULT_PARAM = "information";
+
+
 }

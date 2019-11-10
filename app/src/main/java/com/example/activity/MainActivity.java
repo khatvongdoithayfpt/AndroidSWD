@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -17,7 +18,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -48,12 +51,14 @@ import com.facebook.share.widget.ShareDialog;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private static int REQUEST_CODE_IMAGE1 = 1;
@@ -66,12 +71,15 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imgView3;
     private String realPath1 = "";
     private String realPath2 = "";
+    Button button2, shareFB;
     private API api;
     String userName;
     MenuItem item;
-    Bundle bundle ;
+    Bundle bundle;
     private SavedInformation savedInformation;
     private SavedInformationRepository repository;
+    ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,19 +93,20 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.app_menu, menu);
-        item=menu.findItem(R.id.nav_login);
+        item = menu.findItem(R.id.nav_login);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.nav_login:
                 facebookLogin();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
     public void facebookLogin() {
         callbackManager = CallbackManager.Factory.create();
 
@@ -156,6 +165,12 @@ public class MainActivity extends AppCompatActivity {
         imgView2 = findViewById(R.id.imageView2);
         imgView3 = findViewById(R.id.loadImage);
         Toolbar toolbar = findViewById(R.id.toolbar_actionbar);
+        progressBar = findViewById(R.id.progress_bar);
+        button2 = findViewById(R.id.button2);
+        shareFB = findViewById(R.id.fb_share_button);
+        shareFB.setVisibility(View.INVISIBLE);
+        progressBar.setProgress(0);
+        progressBar.setVisibility(View.GONE);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
@@ -171,9 +186,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),SavedImageActivity.class);
+                Intent intent = new Intent(getApplicationContext(), SavedImageActivity.class);
                 intent.putExtras(bundle);
-                startActivity(intent);
+                startActivityForResult(intent, Constant.REQUEST_CODE_SAVED);
             }
         });
     }
@@ -204,6 +219,15 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    private void setImageView(ImageView imageView, String path) {
+        try {
+            InputStream inputStream = new FileInputStream(new File(path));
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            imageView.setImageBitmap(bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public String getRealPathFromURI(Uri contentUri) {
@@ -223,30 +247,39 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            File file = null;
-            Uri uri;
-            int action = 0;
-            if (requestCode == REQUEST_CODE_IMAGE1 && data != null) {
-                uri = data.getData();
-                new SetImageView(imgView1, uri).execute();
-                realPath1 = getRealPathFromURI(uri);
-
-                savedInformation.setPartner1(realPath1);
-
-                file = new File(realPath1);
-                action = Constant.UPLOAD_FILE_1;
-            } else if (requestCode == REQUEST_CODE_IMAGE2 && data != null) {
-                uri = data.getData();
-                new SetImageView(imgView2, uri).execute();
-                realPath2 = getRealPathFromURI(uri);
-
-                savedInformation.setPartner2(realPath2);
-
-                file = new File(realPath2);
-                action = Constant.UPLOAD_FILE_2;
-            }
-            new UploadImage(action).execute(file);
+        switch (requestCode) {
+            case Constant.REQUEST_CODE_SAVED:
+                if(resultCode == RESULT_OK){
+                    SavedInformation information =
+                            (SavedInformation)data.getSerializableExtra(Constant.RESULT_PARAM);
+                    new SetImageView(imgView1,null,information.getPartner1()).execute();
+                    new SetImageView(imgView2,null,information.getPartner2()).execute();
+                    new SetImageView(imgView3,null,information.getChild()).execute();
+                }
+                break;
+            default:
+                if (resultCode == RESULT_OK) {
+                    File file = null;
+                    Uri uri;
+                    int action = 0;
+                    if (requestCode == REQUEST_CODE_IMAGE1 && data != null) {
+                        uri = data.getData();
+                        new SetImageView(imgView1, uri,null).execute();
+                        realPath1 = getRealPathFromURI(uri);
+                        savedInformation.setPartner1(realPath1);
+                        file = new File(realPath1);
+                        action = Constant.UPLOAD_FILE_1;
+                    } else if (requestCode == REQUEST_CODE_IMAGE2 && data != null) {
+                        uri = data.getData();
+                        new SetImageView(imgView2, uri,null).execute();
+                        realPath2 = getRealPathFromURI(uri);
+                        savedInformation.setPartner2(realPath2);
+                        file = new File(realPath2);
+                        action = Constant.UPLOAD_FILE_2;
+                    }
+                    new UploadImage(action).execute(file);
+                }
+                break;
         }
     }
 
@@ -263,8 +296,6 @@ public class MainActivity extends AppCompatActivity {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
 
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-        System.out.println(accessToken);
-        System.out.println(isLoggedIn);
         if (!isLoggedIn) {
             facebookLogin();
         }
@@ -281,19 +312,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class SetImageView extends AsyncTask<Void,Void,Void>{
+    private class SetImageView extends AsyncTask<Void, Void, Void> {
 
         private ImageView imageView;
         private Uri uri;
+        private String path;
 
-        public SetImageView(ImageView imageView, Uri uri) {
+        public SetImageView(ImageView imageView, Uri uri, String path) {
             this.imageView = imageView;
+            this.path = path;
             this.uri = uri;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            setImageView(imageView,uri);
+            if(path != null){
+                setImageView(imageView, path);
+            }else{
+                setImageView(imageView, uri);
+            }
+
             return null;
         }
     }
@@ -356,6 +394,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class DoMakeBaby extends AsyncTask<BabyCharacteristic, Void, String> {
+        boolean loading = false;
+
         @Override
         protected String doInBackground(BabyCharacteristic... babyCharacteristics) {
             String result = null;
@@ -366,22 +406,60 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+            loading = true;
+            button2.setClickable(false);
+            button2.setText("Loading....");
+            shareFB.setVisibility(View.INVISIBLE);
+            process();
+        }
+
+        @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if(result.equals(Constant.RESULT_SUCCESS)){
+            if (result.equals(Constant.RESULT_SUCCESS)) {
                 String url = api.getURLChildImage();
                 new LoadImageAPI().execute(url);
 
-                String pathChild = Utils.saveImage(api,"ChildOfKing");
+                String name = url.substring(url.lastIndexOf("/"), url.length());
+                String pathChild = Utils.saveImage(api, name);
                 savedInformation.setChild(pathChild);
 
                 repository.insert(savedInformation.getPartner1()
-                        ,savedInformation.getPartner2()
-                        ,savedInformation.getChild());
-            }else{
-                Toast.makeText(getBaseContext(),result,Toast.LENGTH_LONG);
+                        , savedInformation.getPartner2()
+                        , savedInformation.getChild());
+                loading = false;
+                button2.setClickable(true);
+                button2.setText("Result");
+                shareFB.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.GONE);
+            } else {
+                Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG);
                 Log.e("Information Image", result);
             }
+        }
+
+        void process() {
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    while (loading) {
+
+                        try {
+                            sleep(100);
+                            progressBar.incrementProgressBy(10);
+                            if (progressBar.getProgress() == 100)
+                                progressBar.setProgress(0);
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+                }
+            };
+            t.start();
         }
     }
 
@@ -393,10 +471,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("aaaaaaaa");
                     String name = object.getString("name");
                     item.setTitle(name);
-                    String image = object
-                            .getJSONObject("picture")
-                            .getJSONObject("data")
-                            .getString("url");
+                    String image = object.getJSONObject("picture").getJSONObject("data").getString("url");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -404,4 +479,17 @@ public class MainActivity extends AppCompatActivity {
         });
         request.executeAsync();
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        repository.closeConnection();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        repository = new SavedInformationRepository(this);
+    }
+
 }

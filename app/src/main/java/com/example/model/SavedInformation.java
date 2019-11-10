@@ -3,20 +3,15 @@ package com.example.model;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import androidx.room.TypeConverter;
 import androidx.room.TypeConverters;
 
 import com.example.utils.TimestampConverter;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
-@Entity
+import java.util.Date;
+
+@Entity(tableName = "image_information")
 public class SavedInformation implements Serializable {
 
     @PrimaryKey(autoGenerate = true)

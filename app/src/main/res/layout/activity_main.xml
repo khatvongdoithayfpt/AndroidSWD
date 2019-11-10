@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<RelativeLayout
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:scrollbars="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_actionbar"
@@ -58,35 +63,84 @@
             android:layout_weight="0.1"/>
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/relative"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:max="100"
+        android:minWidth="250dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_process">
+
+    </ProgressBar>
+
     <ImageView
         android:id="@+id/loadImage"
         android:layout_width="255dp"
         android:layout_height="261dp"
         android:layout_below="@+id/relative"
-        android:layout_marginTop="37dp"
         android:clickable="true"
         android:onClick="eventPressMakeBaby"
-        android:src="@drawable/ic_launcher_background"
         android:layout_centerHorizontal="true"
-        />
+        android:layout_marginTop="49dp"
+        android:src="@drawable/ic_launcher_background" />
 
-    <Button
-        android:id="@+id/fb_share_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/relative2"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/loadImage"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="26dp"
-        android:onClick="test"
-        android:padding="10dp"
-        android:text="Share On FaceBook" />
+        android:layout_marginTop="57dp"
+        android:orientation="horizontal"
+        android:weightSum="1">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.2"></View>
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:padding="10dp"
+            android:text="Result"
+            android:textColor="#fff"
+            android:background="#79B626"
+            android:onClick="eventPressMakeBaby"/>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"></View>
+
+        <Button
+            android:id="@+id/fb_share_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadImage"
+            android:layout_weight="0.2"
+            android:onClick="test"
+            android:padding="10dp"
+            android:background="#1F76AD"
+            android:textColor="#fff"
+            android:text="Share On FaceBook" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"></View>
+    </LinearLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/test"
         android:text="test"
-        android:layout_below="@id/fb_share_button"/>
+        android:layout_below="@id/relative2"/>
+
 </RelativeLayout>
+</ScrollView>

@@ -2,16 +2,18 @@ package com.example.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 
 import com.example.model.SavedInformation;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class SavedInformationRepository {
+public class SavedInformationRepository implements Serializable {
 
     private final String DB_NAME = "db_SavedInformation";
 
@@ -19,6 +21,13 @@ public class SavedInformationRepository {
 
     public SavedInformationRepository(Context context) {
         savedDatabase = Room.databaseBuilder(context,SavedDatabase.class,DB_NAME).build();
+    }
+
+    public void closeConnection(){
+        if(savedDatabase.isOpen()){
+            savedDatabase.close();
+            savedDatabase = null;
+        }
     }
 
     public LiveData<List<SavedInformation>> fetchAllData(){
@@ -37,14 +46,21 @@ public class SavedInformationRepository {
         savedInformation.setCreatedAt(new Date());
         insert(savedInformation);
     }
+
     public void insert(final SavedInformation savedInformation){
-       new AsyncTask<Void,Void,Void>(){
+       new AsyncTask<Void,Void,Long>(){
            @Override
-           protected Void doInBackground(Void... voids) {
-               savedDatabase.daoAccess().insertTask(savedInformation);
-               return null;
+           protected Long doInBackground(Void... voids) {
+               long i = savedDatabase.daoAccess().insertTask(savedInformation);
+               return i;
            }
-       };
+
+           @Override
+           protected void onPostExecute(Long aLong) {
+               super.onPostExecute(aLong);
+               Log.e("Insert count",aLong.toString());
+           }
+       }.execute();
     }
 
 }
