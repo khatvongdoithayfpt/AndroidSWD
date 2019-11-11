@@ -177,7 +177,7 @@ public class LuxandAPI implements API {
 
             byte []buffer = new byte[1024];
             InputStream is = connection.getInputStream();
-            dir+="/"+nameImage+Constant.IMAGE_EXTENSION;
+            dir+="/"+nameImage;
             FileOutputStream fos = new  FileOutputStream(dir);
             int byteReader;
             while((byteReader = is.read(buffer))!= -1){

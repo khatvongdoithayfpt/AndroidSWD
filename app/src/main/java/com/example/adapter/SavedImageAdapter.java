@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,14 +12,16 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.activity.R;
+import com.example.ui.activity.R;
 import com.example.model.SavedInformation;
-import com.example.utils.CallBack;
+import com.example.callback.DoCallBack;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
+
+import static com.example.utils.Utils.setImageView;
 
 public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Holder> {
 
@@ -66,8 +67,8 @@ public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Ho
                 @Override
                 public void onClick(View v) {
                     SavedInformation savedInformation = (SavedInformation) v.getTag();
-                    CallBack callBack = (CallBack) context;
-                    callBack.doCallback(savedInformation);
+                    DoCallBack doCallBack = (DoCallBack) context;
+                    doCallBack.doCallback(savedInformation);
                 }
             });
         }
@@ -107,13 +108,4 @@ public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Ho
         }
     }
 
-    private void setImageView(ImageView imageView, File file) {
-        try {
-            InputStream inputStream = new FileInputStream(file);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            imageView.setImageBitmap(bitmap);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
