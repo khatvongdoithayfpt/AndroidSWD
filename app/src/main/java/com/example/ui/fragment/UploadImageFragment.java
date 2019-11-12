@@ -26,6 +26,7 @@ import com.example.callback.UploadImageRemoteCallback;
 import com.example.callback.UploadSavedDataCallback;
 import com.example.constant.Constant;
 import com.example.model.BabyCharacteristic;
+import com.example.ui.activity.MainActivity;
 import com.example.ui.activity.R;
 
 import java.io.File;
@@ -117,6 +118,7 @@ public class UploadImageFragment extends Fragment {
     public void eventUpload1(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
+//        MainActivity.verifyStoragePermissions(map.);
         startActivityForResult(intent, REQUEST_CODE_IMAGE1);
     }
 

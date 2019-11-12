@@ -1,14 +1,12 @@
 package com.example.ui.activity;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.PersistableBundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +23,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -49,22 +48,9 @@ import com.example.ui.fragment.SavedChildFragment;
 import com.example.ui.fragment.UploadImageFragment;
 import com.example.utils.SavedInformationRepository;
 import com.example.utils.Utils;
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.facebook.share.widget.ShareDialog;
-
-import org.json.JSONObject;
 
 import java.io.File;
-import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity
         implements UploadImageRemoteCallback,
@@ -73,17 +59,8 @@ public class MainActivity extends AppCompatActivity
         GetResultBabyCallback,
         TransitionFragmentCallback,
         DoCallBack {
-    CallbackManager callbackManager;
-    //    Bitmap bitmapChild;
-    ShareDialog shareDialog;
 
-//    Button button2;
-
-    //    Button shareFB;
     private API api;
-    String userName;
-    MenuItem item;
-
     private SavedInformation savedInformation;
     private SavedInformationRepository repository;
     private BabyCharacteristic babyCharacteristic;
@@ -91,29 +68,29 @@ public class MainActivity extends AppCompatActivity
     private UploadImageFragment uploadImageFragment;
     private HistoryFragment historyFragment;
 
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        callbackManager = CallbackManager.Factory.create();
-        shareDialog = new ShareDialog(this);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.app_menu, menu);
-        item = menu.findItem(R.id.nav_login);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.nav_login:
-                facebookLogin();
-                return true;
             default:
                 if (mDrawerToggle.onOptionsItemSelected(item)) {
                     return true;
@@ -123,67 +100,8 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public void facebookLogin() {
-        callbackManager = CallbackManager.Factory.create();
-
-        LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile"));
-
-        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                GraphRequest request = GraphRequest.newMeRequest(
-                        loginResult.getAccessToken(),
-                        new GraphRequest.GraphJSONObjectCallback() {
-                            @Override
-                            public void onCompleted(JSONObject object, GraphResponse response) {
-                                try {
-                                    userName = object.getString("name");
-                                    item.setTitle(userName);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                Bundle parameters = new Bundle();
-                parameters.putString("fields", "id,name,email,gender, birthday");
-                request.setParameters(parameters);
-                request.executeAsync();
-            }
-
-            @Override
-            public void onCancel() {
-                Log.i("MainActivity", "@@@onCancel");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                Log.i("MainActivity", "@@@onError: " + error.getMessage());
-            }
-        });
-    }
-
-    void prinHash() {
-        try {
-            PackageInfo info = getPackageManager().getPackageInfo("com.example.swdproject", PackageManager.GET_SIGNATURES);
-            for (Signature signature : info.signatures) {
-                MessageDigest messageDigest = MessageDigest.getInstance("SHA");
-                messageDigest.update(signature.toByteArray());
-                System.out.println(Base64.encodeToString(messageDigest.digest(), Base64.DEFAULT));
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private void init() {
         Toolbar toolbar = findViewById(R.id.toolbar_actionbar);
-//        progressBar = findViewById(R.id.progress_bar);
-//        button2 = findViewById(R.id.button2);
-//        shareFB = findViewById(R.id.fb_share_button);
-//        shareFB.setVisibility(View.INVISIBLE);
-//        progressBar.setProgress(0);
-//        progressBar.setVisibility(View.GONE);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
@@ -195,17 +113,6 @@ public class MainActivity extends AppCompatActivity
         repository = new SavedInformationRepository(getApplicationContext());
         savedInformation = new SavedInformation();
 
-        //TODO: move to savedActivity
-//        Bundle bundle = new Bundle();
-//        findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(getApplicationContext(), SavedImageActivity.class);
-//                intent.putExtras(bundle);
-//                startActivityForResult(intent, Constant.REQUEST_CODE_SAVED);
-//            }
-//        });
-
         //slide bar initiate
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
@@ -216,42 +123,28 @@ public class MainActivity extends AppCompatActivity
 
         //init fragment
         openFragmentUploadImage();
+        verifyStoragePermissions(this);
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-//    public Bitmap readBitmapAndScale(String path) {
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inJustDecodeBounds = true; //Chỉ đọc thông tin ảnh, không đọc dữ liwwuj
-//        BitmapFactory.decodeFile(path, options); //Đọc thông tin ảnh
-//        options.inSampleSize = 4; //Scale bitmap xuống 4 lần
-//        options.inJustDecodeBounds = false; //Cho phép đọc dữ liệu ảnh ảnh
-//        return BitmapFactory.decodeFile(path, options);
-//    }
+    public void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
 
-//    public void test(View v) {
-//        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-//
-//        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-//        if (!isLoggedIn) {
-//            facebookLogin();
-//        }
-//        if (bitmapChild == null) return;
-//        SharePhoto photo = new SharePhoto.Builder()
-//                .setBitmap(bitmapChild)
-//                .build();
-//        SharePhotoContent content = new SharePhotoContent.Builder()
-//                .addPhoto(photo)
-//                .build();
-//        if (shareDialog.canShow(content)) {
-//
-//            shareDialog.show(content);
-//        }
-//    }
     private void openFragmentUploadImage() {
         uploadImageFragment = new UploadImageFragment(this);
         FragmentManager manager = getSupportFragmentManager();
@@ -260,8 +153,8 @@ public class MainActivity extends AppCompatActivity
                 .commit();
     }
 
-    private void openHistoryFragment(){
-        if(historyFragment == null){
+    private void openHistoryFragment() {
+        if (historyFragment == null) {
             historyFragment = new HistoryFragment(this);
         }
         FragmentManager manager = getSupportFragmentManager();
@@ -273,7 +166,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void doCallback(Object param) {
         SavedInformation savedInformation = (SavedInformation) param;
-        SavedChildFragment savedChildFragment = new SavedChildFragment(this,savedInformation);
+        SavedChildFragment savedChildFragment = new SavedChildFragment(this, savedInformation);
         FragmentManager manager = getSupportFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.add(R.id.container_content, savedChildFragment)
@@ -337,7 +230,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            Toast.makeText(getApplicationContext(), "Update File successfully", Toast.LENGTH_LONG);
+            Toast.makeText(getApplicationContext(), "Update File successfully", Toast.LENGTH_LONG).show();
             Log.e("Result", "Update File successfully");
             super.onPostExecute(aVoid);
         }
@@ -361,6 +254,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(String aVoid) {
             Log.e("Result", aVoid);
+            Toast.makeText(getApplicationContext(),aVoid,Toast.LENGTH_LONG).show();
             super.onPostExecute(aVoid);
         }
     }
@@ -396,29 +290,13 @@ public class MainActivity extends AppCompatActivity
                         , savedInformation.getChild());
                 ((UpdateViewCallback) resultFragment).doUpdateView(url);
             } else {
-                Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG);
+                Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG).show();
                 Log.e("Information Image", result);
             }
         }
 
     }
 
-    private void useLoginInformation(AccessToken accessToken) {
-        GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
-            @Override
-            public void onCompleted(JSONObject object, GraphResponse response) {
-                try {
-                    System.out.println("aaaaaaaa");
-                    String name = object.getString("name");
-                    item.setTitle(name);
-                    String image = object.getJSONObject("picture").getJSONObject("data").getString("url");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        request.executeAsync();
-    }
 
     @Override
     protected void onStop() {

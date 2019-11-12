@@ -5,19 +5,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@mipmap/ic_app_swd"
+        android:roundIcon="@mipmap/ic_app_swd_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity
-            android:name=".SavedImageActivity"
-            android:label="@string/title_activity_saved_image"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+        android:theme="@style/AppTheme"
+        android:label="@string/app_name">
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
@@ -30,7 +26,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
