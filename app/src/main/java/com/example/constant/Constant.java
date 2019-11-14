@@ -2,9 +2,9 @@ package com.example.constant;
 
 /**
  * 
- * Const
+ * Constant
  */
-public final class Const {
+public final class Constant {
     /* COOKIES NAME */
     public static final String UID = "uid";
     public static final String BABY_MAKER_VISITED = "babymaker_visited";
@@ -36,5 +36,14 @@ public final class Const {
     public static final String URL_UPLOAD = "https://www.luxand.com/babymaker/uploader.php";
 
     public static final String IMAGE_EXTENSION = ".jpg";
+
+
+    public static final String DIR_SAVE_IMAGE = "ChildOfKing";
+    public static final String RESULT_SUCCESS = "success";
+    public static final String RESULT_ERROR = "error";
+
+    public static final int REQUEST_CODE_SAVED = 12346;
+    public static final String RESULT_PARAM = "information";
+
 
 }

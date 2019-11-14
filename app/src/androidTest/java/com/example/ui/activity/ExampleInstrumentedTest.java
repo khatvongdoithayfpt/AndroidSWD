@@ -1,4 +1,4 @@
-package com.example.swdproject;
+package com.example.ui.activity;
 
 import android.content.Context;
 

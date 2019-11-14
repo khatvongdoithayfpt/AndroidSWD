@@ -1,3 +1,30 @@
 <resources>
-    <string name="app_name">SWDProject</string>
+    <string name="app_name">TIME TO MAKE A BABY!!</string>
+    <string name="facebook_app_id">458397024795274</string>
+    <string name="fb_login_protocol_scheme">fb458397024795274</string>
+    <string name="title_activity_saved_image">SavedImageActivity</string>
+    <string name="drawer_open">open</string>
+    <string name="drawer_close">close</string>
+    <string name="app_description">Predict Your Child</string>
+    <string name="upload_image_1">Upload Partner 1</string>
+    <string name="upload_image_2">Upload Partner 2</string>
+    <string name="gender_baby">Baby gender:</string>
+    <string name="gender_baby_boy">Boy</string>
+    <string name="gender_baby_girl">Girl</string>
+    <string name="gender_baby_either">Either</string>
+
+
+    <string name="skin_baby">﻿Skin color:</string>
+    <string name="skin_light">﻿Light</string>
+    <string name="skin_medium">﻿Medium</string>
+    <string name="skin_dark">﻿Dark</string>
+    <string name="skin_asian">﻿Asian</string>
+    <string name="skin_auto_detect">﻿﻿Auto detect</string>
+    <string name="btn_next">﻿﻿Next</string>
+    <string name="btn_previous">Previous</string>
+
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

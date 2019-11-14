@@ -1,10 +1,14 @@
 package com.example.connection;
 
-import com.example.builder.URLBuilder;
-import com.example.constant.Const;
+import android.util.Log;
 
+import com.example.builder.URLBuilder;
+import com.example.constant.Constant;
+
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,7 +21,6 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,12 +33,25 @@ import java.util.Map.Entry;
 public class LuxandAPI implements API {
 
     public  Map<String, String> cookies;
+    private static API api;
+    public String resultChild;
+
+    static {
+        api = new LuxandAPI();
+    }
+
+    private LuxandAPI() {
+    }
+
+    public static API getApi() {
+        return api;
+    }
 
     @Override
-    public void initiateConnection() {
+    public synchronized String initiateConnection() {
         try {
             cookies = new HashMap<>();
-            URL url = new URL(Const.URL_LUXAND);
+            URL url = new URL(Constant.URL_LUXAND);
 
             CookieManager manager = new CookieManager();
             CookieHandler.setDefault(manager);
@@ -47,20 +63,22 @@ public class LuxandAPI implements API {
                     cookies.put(httpCookie.getName(), httpCookie.getValue());
                 }
             }
+            return Constant.RESULT_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();
+            return Constant.RESULT_ERROR;
         }
     }
 
     @Override
-    public void uploadImage(File file, int type) {
+    public String uploadImage(File file, int type) {
         URLBuilder builder = new URLBuilder();
         String boundary = Long.toHexString(System.currentTimeMillis());
         String CRLF = "\r\n";
         String charset = "UTF-8";
 
         try {
-            URL url = builder.create(Const.URL_UPLOAD).setParameter("file", type == 1 ? "1" : "2").getUrl();
+            URL url = builder.create(Constant.URL_UPLOAD).setParameter("file", type == 1 ? "1" : "2").getUrl();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setDoInput(true);
@@ -75,7 +93,8 @@ public class LuxandAPI implements API {
                     .append(CRLF);
             writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(file.getName())).append(CRLF);
             writer.append(CRLF).flush();
-            Files.copy(file.toPath(), os);
+//            Files.copy(file.toPath(), os);
+            copyFileToOs(file,os);
             os.flush();
             writer.append(CRLF).flush();
             // End of multipart/form-data.
@@ -88,14 +107,15 @@ public class LuxandAPI implements API {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (type == 1) {
-                    cookies.put(Const.PATNER_PHOTO_1, line);
+                    cookies.put(Constant.PATNER_PHOTO_1, line);
                 } else {
-                    cookies.put(Const.PATNER_PHOTO_2, line);
+                    cookies.put(Constant.PATNER_PHOTO_2, line);
                 }
-                System.out.println(line);
             }
+            return Constant.RESULT_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();
+            return Constant.RESULT_ERROR;
         }
     }
 
@@ -109,15 +129,15 @@ public class LuxandAPI implements API {
         StringBuilder image = new StringBuilder();
         try {
             URLBuilder builder = new URLBuilder();
-            builder.create(Const.URL_LUXAND).setPath("1").setPath("m").setParameter("sex", String.valueOf(gender))
+            builder.create(Constant.URL_LUXAND).setPath("1").setPath("m").setParameter("sex", String.valueOf(gender))
                     .setParameter("skin", String.valueOf(skin));
             for (Entry<String, String> entry : cookies.entrySet()) {
                 switch (entry.getKey()) {
-                case Const.PATNER_PHOTO_1:
-                    builder.setParameter(Const.FILE1, entry.getValue()+Const.IMAGE_EXTENSION);
+                case Constant.PATNER_PHOTO_1:
+                    builder.setParameter(Constant.FILE1, entry.getValue()+ Constant.IMAGE_EXTENSION);
                     break;
-                case Const.PATNER_PHOTO_2:
-                    builder.setParameter(Const.FILE2, entry.getValue()+Const.IMAGE_EXTENSION);
+                case Constant.PATNER_PHOTO_2:
+                    builder.setParameter(Constant.FILE2, entry.getValue()+ Constant.IMAGE_EXTENSION);
                     break;
                 default:
                     builder.setParameter(entry.getKey(), entry.getValue());
@@ -136,39 +156,46 @@ public class LuxandAPI implements API {
                 image.append(line);
             }
             image.delete(0, image.lastIndexOf("/"));
+            Log.e("Result",image.toString());
+            resultChild = image.toString();
+            return Constant.RESULT_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();
+            return image.toString();
         }
-        return image.toString();
     }
 
+
     @Override
-    public void saveImage(String nameImage,String saveFilePath) {
+    public String saveImage(String nameImage,String dir) {
         try {
             
             URLBuilder builder = new URLBuilder();
-            URL url = builder.create(Const.URL_IMAGE).setPath(nameImage).getUrl();
+            URL url = builder.create(Constant.URL_IMAGE).setPath(resultChild).getUrl();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Cookie", getStringCookies());
 
             byte []buffer = new byte[1024];
             InputStream is = connection.getInputStream();
-            FileOutputStream fos = new  FileOutputStream(saveFilePath);
-            int bytereader = -1;
-            while((bytereader = is.read(buffer))!= -1){
-                fos.write(buffer, 0, bytereader);
+            dir+="/"+nameImage;
+            FileOutputStream fos = new  FileOutputStream(dir);
+            int byteReader;
+            while((byteReader = is.read(buffer))!= -1){
+                fos.write(buffer, 0, byteReader);
             }
             is.close();
             fos.close();
+            return dir;
         } catch (Exception e) {
             e.printStackTrace();
+            return Constant.RESULT_ERROR;
         }
     }
 
     @Override
-    public String getURLChildImage(String nameImageChild) {
+    public String getURLChildImage() {
         URLBuilder builder = new URLBuilder();
-        URL url = builder.create(Const.URL_IMAGE).setPath(nameImageChild).getUrl();
+        URL url = builder.create(Constant.URL_IMAGE).setPath(resultChild).getUrl();
         return url.toString();
     }
 
@@ -178,7 +205,17 @@ public class LuxandAPI implements API {
             sc.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
         }
         // sc.delete(sc.lastIndexOf(";"), sc.length());
-        sc.append(Const.COOKIES_WARNING).append("=").append("true");
+        sc.append(Constant.COOKIES_WARNING).append("=").append("true");
         return sc.toString();
     }
+    private void copyFileToOs(File file,OutputStream os) throws Exception{
+        int size = 1024;
+        BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file) , size);
+        byte[] buffer = new byte[size];
+        while(inputStream.read(buffer) > 0){
+            os.write(buffer);
+        }
+        inputStream.close();
+    }
+
 }

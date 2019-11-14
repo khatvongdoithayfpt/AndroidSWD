@@ -1,0 +1,72 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.ui.fragment.ResultFragment">
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="10dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="20dp"
+        android:max="100"
+        android:minWidth="250dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_process"
+        android:layout_alignParentTop="true">
+
+    </ProgressBar>
+
+    <ImageView
+        android:id="@+id/loadImage"
+        android:layout_width="255dp"
+        android:layout_height="261dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="49dp"
+        android:clickable="true"
+        android:src="@drawable/ic_tag_faces_black_24dp" />
+
+    <LinearLayout
+        android:id="@+id/layout_btn_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/loadImage"
+        android:layout_marginTop="57dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_result"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#79B626"
+            android:layout_margin="10dp"
+            android:text="Result"
+            android:textColor="#fff" />
+
+        <Button
+            android:id="@+id/fb_share_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadImage"
+            android:layout_weight="1"
+            android:background="#1F76AD"
+            android:layout_margin="10dp"
+            android:text="Share On FaceBook"
+            android:textColor="#fff" />
+    </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_previous"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/layout_btn_area"
+        android:layout_marginRight="40dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/btnPrevious"/>
+
+</RelativeLayout>
