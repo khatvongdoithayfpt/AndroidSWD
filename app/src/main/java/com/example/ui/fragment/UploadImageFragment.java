@@ -26,8 +26,8 @@ import com.example.callback.UploadImageRemoteCallback;
 import com.example.callback.UploadSavedDataCallback;
 import com.example.constant.Constant;
 import com.example.model.BabyCharacteristic;
-import com.example.ui.activity.MainActivity;
 import com.example.ui.activity.R;
+import com.example.utils.Utils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -82,13 +82,13 @@ public class UploadImageFragment extends Fragment {
         imgView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                eventUpload1(v);
+                eventUpload(v,REQUEST_CODE_IMAGE1);
             }
         });
         imgView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                eventUpload2(v);
+                eventUpload(v,REQUEST_CODE_IMAGE2);
             }
         });
 
@@ -115,17 +115,10 @@ public class UploadImageFragment extends Fragment {
 
     }
 
-    public void eventUpload1(View view) {
+    public void eventUpload(View view,int action) {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-//        MainActivity.verifyStoragePermissions(map.);
-        startActivityForResult(intent, REQUEST_CODE_IMAGE1);
-    }
-
-    public void eventUpload2(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_CODE_IMAGE2);
+        startActivityForResult(intent, action);
     }
 
     @Override
@@ -141,7 +134,7 @@ public class UploadImageFragment extends Fragment {
                         uri = data.getData();
                         setImageView(imgView1,uri);
                         map.put("uri1",uri);
-                        String realPath1 = getRealPathFromURI(uri);
+                        String realPath1 = Utils.getRealPathFromURI(uri,mContext);
                         ((UploadSavedDataCallback)mContext).uploadPartner1Path(realPath1);
                         file = new File(realPath1);
                         action = Constant.UPLOAD_FILE_1;
@@ -149,7 +142,7 @@ public class UploadImageFragment extends Fragment {
                         uri = data.getData();
                         map.put("uri2",uri);
                         setImageView(imgView2,uri);
-                        String realPath2 = getRealPathFromURI(uri);
+                        String realPath2 = Utils.getRealPathFromURI(uri,mContext);
                         ((UploadSavedDataCallback)mContext).uploadPartner2Path(realPath2);
                         file = new File(realPath2);
                         action = Constant.UPLOAD_FILE_2;
@@ -170,16 +163,5 @@ public class UploadImageFragment extends Fragment {
         }
     }
 
-    public String getRealPathFromURI(Uri contentUri) {
-        String path = null;
-        String[] proj = {MediaStore.MediaColumns.DATA};
-        Cursor cursor = mContext.getContentResolver().query(contentUri,
-                proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-            path = cursor.getString(column_index);
-        }
-        cursor.close();
-        return path;
-    }
+
 }

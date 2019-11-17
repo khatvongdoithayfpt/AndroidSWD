@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.ui.fragment.UploadImageFragment">
+    tools:context="com.example.ui.fragment.UpdateMultipleImageFragment">
 
     <LinearLayout
         android:id="@+id/container_upload"
@@ -23,13 +23,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
                 android:clickable="true"
-                android:src="@drawable/ic_add_a_photo_black_24dp" />
+                android:src="@drawable/ic_collections_black_24dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="@string/upload_image_1"
+                android:text="@string/upload_image_dad"
                 android:textAlignment="center" />
         </LinearLayout>
 
@@ -45,17 +45,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
                 android:clickable="true"
-                android:src="@drawable/ic_add_a_photo_black_24dp" />
+                android:src="@drawable/ic_collections_black_24dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="@string/upload_image_2"
+                android:text="@string/upload_image_mother"
                 android:textAlignment="center" />
         </LinearLayout>
     </LinearLayout>
-
     <RadioGroup
         android:id="@+id/radio_group_gender"
         android:layout_width="wrap_content"
@@ -110,7 +109,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/skin_baby"
-           />
+            />
 
         <RadioButton
             android:layout_width="wrap_content"
@@ -152,22 +151,22 @@
             android:id="@+id/rb_auto"
             android:checked="true"/>
     </RadioGroup>
-
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_next"
+        android:text="@string/btn_upload"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/radio_group_skin"
         android:layout_marginRight="40dp"
         android:layout_marginTop="20dp"
-        android:id="@+id/btnNext"/>
-
+        android:id="@+id/btnUpload"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Up"
-        android:id="@+id/multiple_image"
-        android:layout_below="@id/btnNext"
-        android:layout_centerInParent="true"/>
+        android:text="Next"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/btnUpload"
+        android:layout_marginRight="40dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/btnNext"/>
 </RelativeLayout>

@@ -1,4 +1,4 @@
-package com.example.utils;
+package com.example.dao;
 
 import androidx.room.TypeConverter;
 

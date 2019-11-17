@@ -1,4 +1,4 @@
-package com.example.utils;
+package com.example.dao;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -7,7 +7,7 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.model.SavedInformation;
+import com.example.model.HistoryRecord;
 
 import java.util.List;
 
@@ -15,20 +15,20 @@ import java.util.List;
 public interface DaoAccess {
 
     @Insert
-    Long insertTask(SavedInformation savedInformation);
+    Long insertTask(HistoryRecord historyRecord);
 
     @Query("SELECT * FROM image_information ORDER BY created_at DESC")
-    LiveData<List<SavedInformation>> fetchAllData();
+    LiveData<List<HistoryRecord>> fetchAllData();
 
     @Query("SELECT * FROM image_information WHERE id =:id")
-    SavedInformation getSingleData(int id);
+    HistoryRecord getSingleData(int id);
 
 
     @Update
-    void updateTask(SavedInformation savedInformation);
+    void updateTask(HistoryRecord historyRecord);
 
 
     @Delete
-    void deleteTask(SavedInformation savedInformation);
+    void deleteTask(HistoryRecord historyRecord);
 
 }

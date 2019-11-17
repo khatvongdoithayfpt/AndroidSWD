@@ -1,9 +1,6 @@
 package com.example.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,20 +9,18 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.model.HistoryRecord;
 import com.example.ui.activity.R;
-import com.example.model.SavedInformation;
 import com.example.callback.DoCallBack;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.List;
 
 import static com.example.utils.Utils.setImageView;
 
 public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Holder> {
 
-    private List<SavedInformation> data;
+    private List<HistoryRecord> data;
     private Context context;
 
     public SavedImageAdapter(List data, Context context) {
@@ -43,11 +38,11 @@ public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Ho
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
-        SavedInformation savedInformation = data.get(position);
-        String path = savedInformation.getChild();
+        HistoryRecord historyRecord = data.get(position);
+        String path = historyRecord.getChild();
         File file = new File(path);
         setImageView(holder.imageView, file);
-        holder.imageView.setTag(savedInformation);
+        holder.imageView.setTag(historyRecord);
     }
 
 
@@ -66,46 +61,11 @@ public class SavedImageAdapter extends RecyclerView.Adapter<SavedImageAdapter.Ho
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    SavedInformation savedInformation = (SavedInformation) v.getTag();
+                    HistoryRecord historyRecord = (HistoryRecord) v.getTag();
                     DoCallBack doCallBack = (DoCallBack) context;
-                    doCallBack.doCallback(savedInformation);
+                    doCallBack.doCallback(historyRecord);
                 }
             });
         }
     }
-
-    public static class SpacesItemDecoration extends RecyclerView.ItemDecoration {
-        private int spanCount;
-        private int spacing;
-        private boolean includeEdge;
-
-        public SpacesItemDecoration(int spanCount, int spacing, boolean includeEdge) {
-            this.spanCount = spanCount;
-            this.spacing = spacing;
-            this.includeEdge = includeEdge;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            int position = parent.getChildAdapterPosition(view); // item position
-            int column = position % spanCount; // item column
-
-            if (includeEdge) {
-                outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
-                outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
-
-                if (position < spanCount) { // top edge
-                    outRect.top = spacing;
-                }
-                outRect.bottom = spacing; // item bottom
-            } else {
-                outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
-                outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
-                if (position >= spanCount) {
-                    outRect.top = spacing; // item top
-                }
-            }
-        }
-    }
-
 }

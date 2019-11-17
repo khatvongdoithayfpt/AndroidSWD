@@ -5,14 +5,14 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
-import com.example.utils.TimestampConverter;
+import com.example.dao.TimestampConverter;
 
 import java.io.Serializable;
 
 import java.util.Date;
 
 @Entity(tableName = "image_information")
-public class SavedInformation implements Serializable {
+public class HistoryRecord implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
     private int id;

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -29,8 +30,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.adapter.DrawerListAdapter;
+import com.example.callback.ConnectionPoolCallback;
 import com.example.callback.DoCallBack;
 import com.example.callback.GetResultBabyCallback;
+import com.example.callback.ManageImageCallback;
 import com.example.callback.TransitionFragmentCallback;
 import com.example.callback.UpdateViewCallback;
 import com.example.callback.UploadBabyCharacteristicCallback;
@@ -41,16 +44,20 @@ import com.example.connection.LuxandAPI;
 import com.example.constant.Constant;
 import com.example.model.BabyCharacteristic;
 import com.example.model.NavItem;
-import com.example.model.SavedInformation;
+import com.example.model.HistoryRecord;
 import com.example.ui.fragment.HistoryFragment;
 import com.example.ui.fragment.ResultFragment;
 import com.example.ui.fragment.SavedChildFragment;
+import com.example.ui.fragment.ShowImageFragment;
+import com.example.ui.fragment.UpdateMultipleImageFragment;
 import com.example.ui.fragment.UploadImageFragment;
-import com.example.utils.SavedInformationRepository;
+import com.example.dao.HistoryRecordRepository;
 import com.example.utils.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity
         implements UploadImageRemoteCallback,
@@ -58,21 +65,30 @@ public class MainActivity extends AppCompatActivity
         UploadBabyCharacteristicCallback,
         GetResultBabyCallback,
         TransitionFragmentCallback,
-        DoCallBack {
-
-    private API api;
-    private SavedInformation savedInformation;
-    private SavedInformationRepository repository;
-    private BabyCharacteristic babyCharacteristic;
-    private ResultFragment resultFragment;
-    private UploadImageFragment uploadImageFragment;
-    private HistoryFragment historyFragment;
+        DoCallBack,
+        ManageImageCallback,
+        ConnectionPoolCallback {
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    private HistoryRecord historyRecord;
+    private HistoryRecordRepository repository;
+    private BabyCharacteristic babyCharacteristic;
+    private ResultFragment resultFragment;
+    private UploadImageFragment uploadImageFragment;
+    private HistoryFragment historyFragment;
+    private ShowImageFragment showImageFragment;
+    private UpdateMultipleImageFragment updateMultipleImageFragment;
+    private List<Uri> partner1Uris;
+    private List<Uri> partner2Uris;
+    private List<API> connectionPool;
+    private List<String> urls;
+    private boolean isMultipleImage = false;
+    private AtomicInteger workCounter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +107,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.nav_add:
+                Log.e("Add","show:"+showImageFragment.isVisible());
+                break;
             default:
                 if (mDrawerToggle.onOptionsItemSelected(item)) {
                     return true;
@@ -106,12 +125,26 @@ public class MainActivity extends AppCompatActivity
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle(R.string.app_name);
-        api = LuxandAPI.getApi();
-        new InitConnection().execute();
+//        actionBar.setTitle(R.string.app_name);
 
-        repository = new SavedInformationRepository(getApplicationContext());
-        savedInformation = new SavedInformation();
+
+        partner1Uris = new ArrayList<>();
+        partner2Uris = new ArrayList<>();
+        connectionPool = new ArrayList<>();
+        urls = new ArrayList<>();
+        workCounter = new AtomicInteger();
+
+        repository = new HistoryRecordRepository(getApplicationContext());
+        historyRecord = new HistoryRecord();
+        showImageFragment = new ShowImageFragment(this);
+        updateMultipleImageFragment = new UpdateMultipleImageFragment(this,
+                connectionPool,
+                partner1Uris,
+                partner2Uris);
+
+
+        connectionPool.add(new LuxandAPI());
+        new InitConnection(connectionPool.get(0)).execute();
 
         //slide bar initiate
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -165,8 +198,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void doCallback(Object param) {
-        SavedInformation savedInformation = (SavedInformation) param;
-        SavedChildFragment savedChildFragment = new SavedChildFragment(this, savedInformation);
+        HistoryRecord historyRecord = (HistoryRecord) param;
+        SavedChildFragment savedChildFragment = new SavedChildFragment(this, historyRecord);
         FragmentManager manager = getSupportFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.add(R.id.container_content, savedChildFragment)
@@ -192,27 +225,27 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void GetResultBaby() {
-        new DoMakeBaby().execute(babyCharacteristic);
+        new DoMakeBaby(connectionPool.get(0)).execute(babyCharacteristic);
     }
 
     @Override
     public void uploadDataToRemote(int action, File file) {
-        new MainActivity.UploadImage(action).execute(file);
+        new MainActivity.UploadImage(action, connectionPool.get(0)).execute(file);
     }
 
     @Override
     public void uploadPartner1Path(String path) {
-        savedInformation.setPartner1(path);
+        historyRecord.setPartner1(path);
     }
 
     @Override
     public void uploadPartner2Path(String path) {
-        savedInformation.setPartner2(path);
+        historyRecord.setPartner2(path);
     }
 
     @Override
     public void uploadChildPath(String path) {
-        savedInformation.setChild(path);
+        historyRecord.setChild(path);
     }
 
     @Override
@@ -220,11 +253,75 @@ public class MainActivity extends AppCompatActivity
         this.babyCharacteristic = babyCharacteristic;
     }
 
+    @Override
+    public void openManageImage(int action) {
+        if(action == 1){
+            showImageFragment.setUris(partner1Uris);
+        }else{
+            showImageFragment.setUris(partner2Uris);
+        }
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.container_content,showImageFragment);
+        transaction.commit();
+    }
+
+    @Override
+    public void openPrevious() {
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.container_content,updateMultipleImageFragment);
+        transaction.commit();
+    }
+
+    @Override
+    public void initPoolConnection() {
+
+        for (API api:connectionPool) {
+            new InitConnection(api).execute();
+        }
+    }
+
+    @Override
+    public void uploadImage() {
+        int index = 0;
+        for(int i = 0; i < partner1Uris.size(); i ++){
+            File file1 = new File(Utils.getImageFilePath(partner1Uris.get(i),this));
+            for(int j = 0; j < partner2Uris.size(); j ++){
+                File file2 = new File(Utils.getImageFilePath(partner2Uris.get(j),this));
+                new UploadImage(1,connectionPool.get(index)).execute(file1);
+                new UploadImage(2,connectionPool.get(index)).execute(file2);
+                index++;
+            }
+        }
+    }
+
+    @Override
+    public void showResult() {
+        isMultipleImage = true;
+        workCounter.set(connectionPool.size());
+        for (int i = 0; i < connectionPool.size(); i++){
+            new DoMakeBaby(connectionPool.get(i)).execute(babyCharacteristic);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager manager = getSupportFragmentManager();
+        if(manager.getBackStackEntryCount()>0){
+            manager.popBackStack();
+        }else{
+            super.onBackPressed();
+        }
+    }
+
     //
     public class UploadImage extends AsyncTask<File, Void, Void> {
         private int action;
+        private API api;
 
-        public UploadImage(int action) {
+        public UploadImage(int action, API api) {
+            this.api = api;
             this.action = action;
         }
 
@@ -246,6 +343,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private class InitConnection extends AsyncTask<Void, Void, String> {
+        private API api;
+        public InitConnection( API api) {
+            this.api = api;
+        }
         @Override
         protected String doInBackground(Void... voids) {
             return api.initiateConnection();
@@ -260,6 +361,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private class DoMakeBaby extends AsyncTask<BabyCharacteristic, Void, String> {
+        private API api;
+
+        public DoMakeBaby(API api) {
+            this.api = api;
+        }
+
         @Override
         protected String doInBackground(BabyCharacteristic... babyCharacteristics) {
             String result = null;
@@ -272,7 +379,9 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            ((UpdateViewCallback) resultFragment).doUpdateView(null);
+            if(!isMultipleImage){
+                ((UpdateViewCallback) resultFragment).doUpdateView(null);
+            }
         }
 
         @Override
@@ -281,14 +390,29 @@ public class MainActivity extends AppCompatActivity
             if (result.equals(Constant.RESULT_SUCCESS)) {
                 String url = api.getURLChildImage();
                 //save image to local
+                urls.add(url);
 
                 String name = url.substring(url.lastIndexOf("/"), url.length());
                 String pathChild = Utils.saveImage(api, name);
-                savedInformation.setChild(pathChild);
-                repository.insert(savedInformation.getPartner1()
-                        , savedInformation.getPartner2()
-                        , savedInformation.getChild());
-                ((UpdateViewCallback) resultFragment).doUpdateView(url);
+                historyRecord.setChild(pathChild);
+                repository.insert(historyRecord.getPartner1()
+                        , historyRecord.getPartner2()
+                        , historyRecord.getChild());
+                if(isMultipleImage){
+                    Log.e("Count",workCounter.get()+"");
+                    if(workCounter.get()==1){
+                        showImageFragment.setUris(null);
+                        showImageFragment.setLinks(urls);
+
+                        FragmentManager manager = getSupportFragmentManager();
+                        FragmentTransaction transaction = manager.beginTransaction();
+                        transaction.replace(R.id.container_content,showImageFragment);
+                        transaction.commit();
+                    }
+                }else{
+                    ((UpdateViewCallback) resultFragment).doUpdateView(url);
+                }
+                workCounter.decrementAndGet();
             } else {
                 Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG).show();
                 Log.e("Information Image", result);
@@ -307,7 +431,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        repository = new SavedInformationRepository(this);
+        repository = new HistoryRecordRepository(this);
     }
 
     //init slide bar
@@ -326,8 +450,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-//        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerPane);
-//        menu.findItem(R.id.).setVisible(!drawerOpen);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        boolean isShowed = showImageFragment.isVisible();
+        if(!isShowed){
+            menu.findItem(R.id.nav_add).setVisible(isShowed);
+        }
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -336,7 +464,9 @@ public class MainActivity extends AppCompatActivity
         navItems.add(new NavItem("Home",
                 "Meetup destination",
                 R.drawable.ic_home_black_24dp));
-        //TODO: history option
+        navItems.add(new NavItem("Your friend Children",
+                "Your friend Children",
+                R.drawable.ic_home_black_24dp));
         navItems.add(new NavItem("History",
                 "History of prediction child",
                 R.drawable.ic_history_black_24dp));
@@ -380,14 +510,16 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    //TODO: create fragment
     private void selectItemFromDrawer(int position) {
         switch (position) {
             case 0:
                 previousFragment();
                 break;
-            case 1:
+            case 2:
                 openHistoryFragment();
+                break;
+            case 1:
+                openPrevious();
                 break;
             default:
                 break;

@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.example.model.SavedInformation;
+import com.example.model.HistoryRecord;
 import com.example.ui.activity.R;
 import com.example.utils.Utils;
 
@@ -24,14 +24,14 @@ import java.io.File;
 public class SavedChildFragment extends Fragment {
 
     private Context mContext;
-    private SavedInformation savedInformation;
+    private HistoryRecord historyRecord;
     private ImageView ivPartner1;
     private ImageView ivPartner2;
     private ImageView ivChild;
 
-    public SavedChildFragment(Context mContext, SavedInformation savedInformation) {
+    public SavedChildFragment(Context mContext, HistoryRecord historyRecord) {
         this.mContext = mContext;
-        this.savedInformation = savedInformation;
+        this.historyRecord = historyRecord;
     }
 
     @Override
@@ -46,8 +46,8 @@ public class SavedChildFragment extends Fragment {
     }
 
     private void setImageToImageView(){
-        Utils.setImageView(ivChild,new File(savedInformation.getChild()));
-        Utils.setImageView(ivPartner1,new File(savedInformation.getPartner1()));
-        Utils.setImageView(ivPartner2,new File(savedInformation.getPartner2()));
+        Utils.setImageView(ivChild,new File(historyRecord.getChild()));
+        Utils.setImageView(ivPartner1,new File(historyRecord.getPartner1()));
+        Utils.setImageView(ivPartner2,new File(historyRecord.getPartner2()));
     }
 }

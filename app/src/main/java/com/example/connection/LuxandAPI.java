@@ -33,18 +33,10 @@ import java.util.Map.Entry;
 public class LuxandAPI implements API {
 
     public  Map<String, String> cookies;
-    private static API api;
     public String resultChild;
 
-    static {
-        api = new LuxandAPI();
-    }
 
-    private LuxandAPI() {
-    }
-
-    public static API getApi() {
-        return api;
+    public LuxandAPI() {
     }
 
     @Override

@@ -1,13 +1,15 @@
 <resources>
     <string name="app_name">TIME TO MAKE A BABY!!</string>
-    <string name="facebook_app_id">458397024795274</string>
-    <string name="fb_login_protocol_scheme">fb458397024795274</string>
+    <string name="facebook_app_id">2492328377739836</string>
+    <string name="fb_login_protocol_scheme">fb2492328377739836</string>
     <string name="title_activity_saved_image">SavedImageActivity</string>
     <string name="drawer_open">open</string>
     <string name="drawer_close">close</string>
     <string name="app_description">Predict Your Child</string>
     <string name="upload_image_1">Upload Partner 1</string>
     <string name="upload_image_2">Upload Partner 2</string>
+    <string name="upload_image_dad">Upload Father Images</string>
+    <string name="upload_image_mother">Upload Mother Images</string>
     <string name="gender_baby">Baby gender:</string>
     <string name="gender_baby_boy">Boy</string>
     <string name="gender_baby_girl">Girl</string>
@@ -21,6 +23,7 @@
     <string name="skin_asian">﻿Asian</string>
     <string name="skin_auto_detect">﻿﻿Auto detect</string>
     <string name="btn_next">﻿﻿Next</string>
+    <string name="btn_upload">Upload</string>
     <string name="btn_previous">Previous</string>
 
 

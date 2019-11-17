@@ -1,9 +1,16 @@
 package com.example.utils;
 
+import android.content.ContentUris;
+import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.example.connection.API;
@@ -53,6 +60,32 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getRealPathFromURI(Uri contentUri, Context mContext) {
+        String path = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = mContext.getContentResolver().query(contentUri,
+                proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            path = cursor.getString(column_index);
+        }
+        cursor.close();
+        return path;
+    }
+
+    public static String getImageFilePath(Uri uri,Context mContext) {
+        final String id = DocumentsContract.getDocumentId(uri);
+        final Uri contentUri = ContentUris.withAppendedId(
+                Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = mContext.getContentResolver().query(contentUri, projection, null, null, null);
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String path = cursor.getString(column_index);
+        return path;
     }
 
 }
